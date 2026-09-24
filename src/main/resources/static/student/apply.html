@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Permission Application — CampusPass</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body class="bg-light">
+
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center" href="/student/dashboard.html">
+        <i class="bi bi-shield-lock-fill me-2 fs-4 text-info"></i>
+        <span>CampusPass</span>
+        <span class="brand-badge">Student Portal</span>
+      </a>
+      <span class="navbar-text text-light" id="navUserDisplay">Loading...</span>
+    </div>
+  </nav>
+
+  <div class="container py-4">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        
+        <div class="d-flex align-items-center mb-4">
+          <a href="/student/dashboard.html" class="btn btn-outline-secondary btn-sm me-3">
+            <i class="bi bi-arrow-left"></i> Back
+          </a>
+          <div>
+            <h3 class="fw-bold mb-0">Create Permission Application</h3>
+            <small class="text-muted">Digitally submit your movement request for HOD review</small>
+          </div>
+        </div>
+
+        <div id="errorAlert" class="alert alert-danger d-none" role="alert"></div>
+
+        <div class="card p-4 shadow-sm border-0">
+          <form id="applyForm">
+
+            <!-- Emergency Request Checkbox Banner -->
+            <div class="form-check form-switch p-3 bg-light rounded border mb-4">
+              <input class="form-check-input ms-0 me-2" type="checkbox" id="emergencyToggle">
+              <label class="form-check-label fw-bold text-danger" for="emergencyToggle">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i> Mark as Emergency Permission Request
+              </label>
+              <div class="small text-muted mt-1 ms-4">
+                Check this ONLY for genuine emergencies (medical appointment, hospital visit, urgent family crisis). Emergency requests are highlighted with high visual priority for rapid HOD review.
+              </div>
+            </div>
+
+            <!-- Subject -->
+            <div class="mb-3">
+              <label for="subject" class="form-label fw-semibold">Application Subject <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="subject" required 
+                     placeholder="e.g. Permission to visit bank branch / Medical consultation">
+            </div>
+
+            <!-- Free Text Rationale in Student's Own Words -->
+            <div class="mb-4">
+              <label for="reasonText" class="form-label fw-semibold">Detailed Application & Rationale <span class="text-danger">*</span></label>
+              <textarea class="form-control" id="reasonText" rows="5" required 
+                        placeholder="Write your application in your own words. Explain the specific work, why your presence is needed, where you will be going, and any relevant details..."></textarea>
+              <div class="form-text">
+                Be specific and honest. The HOD will read this explanation to make their decision.
+              </div>
+            </div>
+
+            <!-- Departure & Return Date/Time -->
+            <div class="row g-3 mb-4">
+              <div class="col-md-4">
+                <label for="leaveDate" class="form-label fw-semibold">Leaving Date <span class="text-danger">*</span></label>
+                <input type="date" class="form-control" id="leaveDate" required>
+              </div>
+              <div class="col-md-4">
+                <label for="leaveTime" class="form-label fw-semibold">Leaving Time <span class="text-danger">*</span></label>
+                <input type="time" class="form-control" id="leaveTime" required>
+              </div>
+              <div class="col-md-4">
+                <label for="expectedReturnDateTime" class="form-label fw-semibold">Expected Return Date & Time <span class="text-danger">*</span></label>
+                <input type="datetime-local" class="form-control" id="expectedReturnDateTime" required>
+              </div>
+            </div>
+
+            <!-- File Upload -->
+            <div class="mb-4">
+              <label for="files" class="form-label fw-semibold">Supporting Documents (Optional)</label>
+              <input class="form-control" type="file" id="files" multiple accept=".pdf,.png,.jpg,.jpeg">
+              <div class="form-text">
+                Upload medical prescriptions, bank letters, or government summons if applicable (Max 5MB each).
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+              <a href="/student/dashboard.html" class="btn btn-secondary px-4">Cancel</a>
+              <button type="submit" id="submitBtn" class="btn btn-primary px-4 fw-semibold">
+                <i class="bi bi-send-fill me-1"></i> Submit Application to HOD
+              </button>
+            </div>
+
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script>
+    const user = Auth.checkAuth('STUDENT');
+
+    // Set default dates
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('leaveDate').value = today;
+    document.getElementById('leaveDate').min = today;
+
+    document.getElementById('applyForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errorAlert = document.getElementById('errorAlert');
+      const submitBtn = document.getElementById('submitBtn');
+      errorAlert.classList.add('d-none');
+
+      const formData = new FormData();
+      formData.append('subject', document.getElementById('subject').value.trim());
+      formData.append('reasonText', document.getElementById('reasonText').value.trim());
+      formData.append('emergency', document.getElementById('emergencyToggle').checked);
+      formData.append('leaveDate', document.getElementById('leaveDate').value);
+      formData.append('leaveTime', document.getElementById('leaveTime').value);
+      formData.append('expectedReturnDateTime', document.getElementById('expectedReturnDateTime').value);
+
+      const filesInput = document.getElementById('files');
+      if (filesInput.files) {
+        for (let i = 0; i < filesInput.files.length; i++) {
+          formData.append('files', filesInput.files[i]);
+        }
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Submitting...';
+
+      try {
+        await API.postFormData('/api/v1/applications', formData);
+        window.location.href = '/student/dashboard.html?submitted=true';
+      } catch (err) {
+        errorAlert.textContent = err.message || 'Failed to submit application';
+        errorAlert.classList.remove('d-none');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="bi bi-send-fill me-1"></i> Submit Application to HOD';
+      }
+    });
+  </script>
+</body>
+</html>

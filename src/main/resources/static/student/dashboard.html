@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Dashboard — CampusPass</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body class="bg-light">
+
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center" href="/student/dashboard.html">
+        <i class="bi bi-shield-lock-fill me-2 fs-4 text-info"></i>
+        <span>CampusPass</span>
+        <span class="brand-badge">Student Portal</span>
+      </a>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto align-items-lg-center">
+          <li class="nav-item me-3">
+            <span class="navbar-text text-light" id="navUserDisplay">Loading...</span>
+          </li>
+          <!-- Notifications Dropdown -->
+          <li class="nav-item dropdown me-3 position-relative">
+            <a class="nav-link text-light position-relative" href="#" role="button" data-bs-toggle="dropdown">
+              <i class="bi bi-bell fs-5"></i>
+              <span id="navNotifBadge" class="badge rounded-pill bg-danger notif-badge" style="display:none;">0</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm" id="navNotificationsList" style="width: 320px;">
+              <li><span class="dropdown-item text-muted">Loading notifications...</span></li>
+            </ul>
+          </li>
+          <li class="nav-item">
+            <button class="btn btn-outline-light btn-sm" onclick="Auth.logout()">
+              <i class="bi bi-box-arrow-right me-1"></i> Logout
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container py-4">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+      <div>
+        <h2 class="fw-bold mb-1">Student Dashboard</h2>
+        <p class="text-muted mb-0">Manage permission requests, digital E-Passes, and gate movement</p>
+      </div>
+      <div>
+        <a href="/student/apply.html" class="btn btn-primary fw-semibold shadow-sm">
+          <i class="bi bi-plus-circle me-1"></i> New Permission Application
+        </a>
+      </div>
+    </div>
+
+    <!-- Active E-Pass Banner -->
+    <div id="activePassContainer" class="mb-5">
+      <!-- Injected via JavaScript -->
+    </div>
+
+    <!-- Applications Table -->
+    <div class="card p-4 shadow-sm border-0">
+      <h5 class="fw-bold mb-3"><i class="bi bi-clock-history me-2 text-primary"></i>My Permission Applications</h5>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Application #</th>
+              <th>Subject</th>
+              <th>Leaving Time</th>
+              <th>Expected Return</th>
+              <th>Status</th>
+              <th>HOD Remarks</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="applicationsTableBody">
+            <tr><td colspan="7" class="text-center py-4 text-muted">Loading applications...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Application Details Modal -->
+  <div class="modal fade" id="detailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold" id="detailsModalTitle">Application Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="detailsModalBody">
+          Loading...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clarification Reply Modal -->
+  <div class="modal fade" id="clarificationModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold">Reply to HOD Clarification</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="clarificationForm">
+          <input type="hidden" id="clarificationAppId">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Your Response / Explanation</label>
+              <textarea class="form-control" id="clarificationText" rows="4" required placeholder="Provide the details requested by HOD..."></textarea>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Attach Supporting Documents (Optional)</label>
+              <input type="file" class="form-control" id="clarificationFiles" multiple accept=".pdf,.png,.jpg,.jpeg">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-warning fw-semibold">Submit Clarification</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Extension Request Modal -->
+  <div class="modal fade" id="extensionModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold">Request Return Time Extension</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="extensionForm">
+          <input type="hidden" id="extensionPassId">
+          <div class="modal-body">
+            <p class="small text-muted">Submit an extension request if you are legitimately delayed off campus. HOD will review immediately.</p>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">New Requested Return Date & Time</label>
+              <input type="datetime-local" class="form-control" id="requestedReturnTime" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Reason for Extension</label>
+              <textarea class="form-control" id="extensionReason" rows="3" required placeholder="Explain why you are delayed..."></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary fw-semibold">Submit Extension Request</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script>
+    const user = Auth.checkAuth('STUDENT');
+
+    async function loadDashboard() {
+      await loadActivePass();
+      await loadApplications();
+    }
+
+    async function loadActivePass() {
+      const container = document.getElementById('activePassContainer');
+      try {
+        const res = await API.get('/api/v1/epasses/my-active');
+        const pass = res.data;
+
+        if (!pass) {
+          container.innerHTML = `
+            <div class="alert alert-info border-0 shadow-sm d-flex align-items-center">
+              <i class="bi bi-info-circle-fill fs-4 me-3 text-primary"></i>
+              <div>
+                <strong>No Active E-Pass Right Now</strong>
+                <p class="mb-0 small text-muted">When your permission application is approved by the HOD, your digital QR pass will be displayed here for gate verification.</p>
+              </div>
+            </div>`;
+          return;
+        }
+
+        container.innerHTML = `
+          <div class="card epass-card border-0">
+            <div class="epass-header text-center">
+              <div class="small text-uppercase tracking-wider opacity-75">Official College Movement Pass</div>
+              <h4 class="fw-bold mb-0">${pass.passNumber}</h4>
+              <span class="badge badge-status badge-${pass.status} mt-2">${pass.status}</span>
+            </div>
+            <div class="epass-body text-center">
+              <div class="qr-box mb-3">
+                <img src="${pass.qrCodeBase64}" alt="Pass QR Code">
+                <div class="small text-muted mt-2 fw-semibold">Show this QR to Gate Security</div>
+              </div>
+
+              <div class="text-start bg-light p-3 rounded mb-3 small">
+                <div class="row mb-1">
+                  <div class="col-5 text-muted">Student:</div>
+                  <div class="col-7 fw-bold">${pass.studentName} (${pass.rollNumber})</div>
+                </div>
+                <div class="row mb-1">
+                  <div class="col-5 text-muted">Department:</div>
+                  <div class="col-7">${pass.departmentName}</div>
+                </div>
+                <div class="row mb-1">
+                  <div class="col-5 text-muted">Valid From:</div>
+                  <div class="col-7">${new Date(pass.validFrom).toLocaleString([], {dateStyle:'medium', timeStyle:'short'})}</div>
+                </div>
+                <div class="row mb-1">
+                  <div class="col-5 text-muted">Valid Until:</div>
+                  <div class="col-7 text-danger fw-bold">${new Date(pass.validUntil).toLocaleString([], {dateStyle:'medium', timeStyle:'short'})}</div>
+                </div>
+              </div>
+
+              <button class="btn btn-outline-warning text-dark btn-sm w-100 fw-semibold" onclick="openExtensionModal(${pass.id})">
+                <i class="bi bi-clock-history me-1"></i> Request Return Time Extension
+              </button>
+            </div>
+          </div>
+        `;
+      } catch (err) {
+        console.error('Failed to load pass', err);
+      }
+    }
+
+    async function loadApplications() {
+      const tbody = document.getElementById('applicationsTableBody');
+      try {
+        const res = await API.get('/api/v1/applications/my');
+        const apps = res.data;
+
+        if (apps.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No applications found. Click "New Permission Application" to apply.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = apps.map(app => `
+          <tr>
+            <td class="fw-bold">${app.applicationNumber} ${app.emergency ? '<span class="badge bg-danger ms-1">EMERGENCY</span>' : ''}</td>
+            <td>${app.subject}</td>
+            <td>${app.leaveDate} at ${app.leaveTime}</td>
+            <td>${new Date(app.expectedReturnDateTime).toLocaleString([], {dateStyle:'short', timeStyle:'short'})}</td>
+            <td><span class="badge badge-status badge-${app.status}">${app.status}</span></td>
+            <td><small class="text-muted">${app.hodRemarks || '—'}</small></td>
+            <td class="text-end">
+              <button class="btn btn-sm btn-outline-info me-1" onclick="viewDetails(${app.id})"><i class="bi bi-eye"></i></button>
+              ${app.status === 'CLARIFICATION_REQUIRED' ? `
+                <button class="btn btn-sm btn-warning me-1" onclick="openClarificationModal(${app.id})">
+                  <i class="bi bi-reply-fill"></i> Reply
+                </button>` : ''}
+              ${(app.status === 'SUBMITTED' || app.status === 'CLARIFICATION_REQUIRED') ? `
+                <button class="btn btn-sm btn-outline-danger" onclick="cancelApp(${app.id})"><i class="bi bi-x-circle"></i></button>` : ''}
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-danger text-center py-4">Failed to load applications: ${err.message}</td></tr>`;
+      }
+    }
+
+    async function viewDetails(id) {
+      const modal = new bootstrap.Modal(document.getElementById('detailsModal'));
+      const body = document.getElementById('detailsModalBody');
+      body.innerHTML = '<div class="text-center py-3"><span class="spinner-border"></span></div>';
+      modal.show();
+
+      try {
+        const res = await API.get(`/api/v1/applications/${id}`);
+        const app = res.data;
+
+        body.innerHTML = `
+          <div class="mb-3">
+            <span class="badge badge-status badge-${app.status} fs-6">${app.status}</span>
+            ${app.emergency ? '<span class="badge bg-danger ms-2 fs-6">🚨 EMERGENCY REQUEST</span>' : ''}
+          </div>
+          <h5 class="fw-bold">${app.subject}</h5>
+          <div class="card p-3 bg-light my-3">
+            <h6 class="fw-bold mb-2">Student's Written Explanation:</h6>
+            <div style="white-space: pre-wrap;">${app.reasonText}</div>
+          </div>
+          <div class="row small mb-3">
+            <div class="col-sm-6"><strong>Leaving:</strong> ${app.leaveDate} at ${app.leaveTime}</div>
+            <div class="col-sm-6"><strong>Expected Return:</strong> ${new Date(app.expectedReturnDateTime).toLocaleString()}</div>
+          </div>
+          ${app.hodRemarks ? `<div class="alert alert-warning"><strong>HOD Remarks:</strong> ${app.hodRemarks}</div>` : ''}
+          ${app.documents && app.documents.length > 0 ? `
+            <h6 class="fw-bold">Attached Documents:</h6>
+            <ul class="list-group">
+              ${app.documents.map(d => `
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <span><i class="bi bi-file-earmark-arrow-down me-2 text-primary"></i>${d.fileName}</span>
+                  <a href="/api/v1/applications/documents/${d.id}/download" class="btn btn-sm btn-outline-primary" target="_blank">Download</a>
+                </li>
+              `).join('')}
+            </ul>
+          ` : '<p class="text-muted small">No attached documents</p>'}
+        `;
+      } catch (err) {
+        body.innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
+      }
+    }
+
+    function openClarificationModal(id) {
+      document.getElementById('clarificationAppId').value = id;
+      document.getElementById('clarificationText').value = '';
+      new bootstrap.Modal(document.getElementById('clarificationModal')).show();
+    }
+
+    document.getElementById('clarificationForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('clarificationAppId').value;
+      const text = document.getElementById('clarificationText').value;
+      const fileInput = document.getElementById('clarificationFiles');
+
+      const formData = new FormData();
+      formData.append('responseRemarks', text);
+      if (fileInput.files) {
+        for (let i = 0; i < fileInput.files.length; i++) {
+          formData.append('files', fileInput.files[i]);
+        }
+      }
+
+      try {
+        await API.postFormData(`/api/v1/applications/${id}/clarification`, formData);
+        bootstrap.Modal.getInstance(document.getElementById('clarificationModal')).hide();
+        loadDashboard();
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+
+    function openExtensionModal(passId) {
+      document.getElementById('extensionPassId').value = passId;
+      new bootstrap.Modal(document.getElementById('extensionModal')).show();
+    }
+
+    document.getElementById('extensionForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const passId = document.getElementById('extensionPassId').value;
+      const returnTime = document.getElementById('requestedReturnTime').value;
+      const reason = document.getElementById('extensionReason').value;
+
+      try {
+        await API.post(`/api/v1/epasses/${passId}/request-extension`, {
+          requestedReturnTime: returnTime,
+          reason: reason
+        });
+        alert('Extension request submitted to HOD');
+        bootstrap.Modal.getInstance(document.getElementById('extensionModal')).hide();
+        loadDashboard();
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+
+    async function cancelApp(id) {
+      if (!confirm('Are you sure you want to cancel this application?')) return;
+      try {
+        await API.delete(`/api/v1/applications/${id}/cancel`);
+        loadDashboard();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    loadDashboard();
+  </script>
+</body>
+</html>

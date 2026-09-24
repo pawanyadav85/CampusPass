@@ -1,0 +1,374 @@
+{
+  "info": {
+    "name": "CampusPass REST API Collection",
+    "description": "Comprehensive REST API Collection for CampusPass - Digital Student Permission & Gate Movement Management System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "studentToken",
+      "value": ""
+    },
+    {
+      "key": "hodToken",
+      "value": ""
+    },
+    {
+      "key": "securityToken",
+      "value": ""
+    },
+    {
+      "key": "adminToken",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Login as Student",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"student1\",\n  \"password\": \"Password@123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Login as HOD",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"hod_cse\",\n  \"password\": \"Password@123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Login as Security Guard",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"security_gate1\",\n  \"password\": \"Password@123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Login as Admin",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"Password@123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Get Current Authenticated User",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{studentToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/me", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "me"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Student Permission Applications",
+      "item": [
+        {
+          "name": "Create Permission Application (Multipart Form)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{studentToken}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "subject", "value": "Bank-related official verification", "type": "text" },
+                { "key": "reasonText", "value": "Respected Sir, I need to visit the local branch to complete bank biometric KYC that requires my physical presence.", "type": "text" },
+                { "key": "emergency", "value": "false", "type": "text" },
+                { "key": "leaveDate", "value": "2026-09-24", "type": "text" },
+                { "key": "leaveTime", "value": "10:00:00", "type": "text" },
+                { "key": "expectedReturnDateTime", "value": "2026-09-24T15:00:00", "type": "text" }
+              ]
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/applications", "host": ["{{baseUrl}}"], "path": ["api", "v1", "applications"] }
+          }
+        },
+        {
+          "name": "Get My Applications",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{studentToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/applications/my", "host": ["{{baseUrl}}"], "path": ["api", "v1", "applications", "my"] }
+          }
+        },
+        {
+          "name": "Get Application Details by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{studentToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/applications/1", "host": ["{{baseUrl}}"], "path": ["api", "v1", "applications", "1"] }
+          }
+        },
+        {
+          "name": "Respond to HOD Clarification",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{studentToken}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "responseRemarks", "value": "Sir, I have attached the official bank branch appointment notice as requested.", "type": "text" }
+              ]
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/applications/1/clarification", "host": ["{{baseUrl}}"], "path": ["api", "v1", "applications", "1", "clarification"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. HOD Decision Desk",
+      "item": [
+        {
+          "name": "Get HOD Dashboard Metrics",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{hodToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/hod/dashboard", "host": ["{{baseUrl}}"], "path": ["api", "v1", "hod", "dashboard"] }
+          }
+        },
+        {
+          "name": "Get Department Pending Applications",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{hodToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/hod/applications", "host": ["{{baseUrl}}"], "path": ["api", "v1", "hod", "applications"] }
+          }
+        },
+        {
+          "name": "Approve Application & Issue E-Pass",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{hodToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"remarks\": \"Approved for genuine banking work. Return on time.\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/hod/applications/1/approve", "host": ["{{baseUrl}}"], "path": ["api", "v1", "hod", "applications", "1", "approve"] }
+          }
+        },
+        {
+          "name": "Reject Application",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{hodToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"remarks\": \"Insufficient justification during lab test hours.\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/hod/applications/1/reject", "host": ["{{baseUrl}}"], "path": ["api", "v1", "hod", "applications", "1", "reject"] }
+          }
+        },
+        {
+          "name": "Request Clarification",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{hodToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"remarks\": \"Please upload your bank appointment letter or passbook notice.\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/hod/applications/1/clarify", "host": ["{{baseUrl}}"], "path": ["api", "v1", "hod", "applications", "1", "clarify"] }
+          }
+        },
+        {
+          "name": "Get Department Live Movements",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{hodToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/hod/live-movement", "host": ["{{baseUrl}}"], "path": ["api", "v1", "hod", "live-movement"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Digital E-Pass & QR",
+      "item": [
+        {
+          "name": "Get My Active E-Pass",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{studentToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/epasses/my-active", "host": ["{{baseUrl}}"], "path": ["api", "v1", "epasses", "my-active"] }
+          }
+        },
+        {
+          "name": "Stream Pass QR PNG Image",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{studentToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/epasses/1/qr-image", "host": ["{{baseUrl}}"], "path": ["api", "v1", "epasses", "1", "qr-image"] }
+          }
+        },
+        {
+          "name": "Request Pass Return Extension",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{studentToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"requestedReturnTime\": \"2026-09-24T17:00:00\",\n  \"reason\": \"Bank queue was longer than expected. Delay verified by counter.\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/epasses/1/request-extension", "host": ["{{baseUrl}}"], "path": ["api", "v1", "epasses", "1", "request-extension"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Security Gate Operations",
+      "item": [
+        {
+          "name": "Verify QR Token at Gate",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{securityToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"qrToken\": \"urn:campuspass:token:e89a3f2b-45c1-4b72-9b24-7f12e87391a2\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/security/verify", "host": ["{{baseUrl}}"], "path": ["api", "v1", "security", "verify"] }
+          }
+        },
+        {
+          "name": "Record Gate Exit",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{securityToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"qrToken\": \"urn:campuspass:token:e89a3f2b-45c1-4b72-9b24-7f12e87391a2\",\n  \"remarks\": \"Leaving on foot, carrying laptop bag\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/security/record-exit", "host": ["{{baseUrl}}"], "path": ["api", "v1", "security", "record-exit"] }
+          }
+        },
+        {
+          "name": "Record Gate Return",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{securityToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"qrToken\": \"urn:campuspass:token:e89a3f2b-45c1-4b72-9b24-7f12e87391a2\",\n  \"remarks\": \"Returned safely\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/security/record-return", "host": ["{{baseUrl}}"], "path": ["api", "v1", "security", "record-return"] }
+          }
+        },
+        {
+          "name": "Get Currently Outside Students",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{securityToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/security/currently-outside", "host": ["{{baseUrl}}"], "path": ["api", "v1", "security", "currently-outside"] }
+          }
+        },
+        {
+          "name": "Get Overdue Students",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{securityToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/security/overdue-students", "host": ["{{baseUrl}}"], "path": ["api", "v1", "security", "overdue-students"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Administration & Governance",
+      "item": [
+        {
+          "name": "Get Admin Dashboard Metrics",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/dashboard", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "dashboard"] }
+          }
+        },
+        {
+          "name": "List All Users",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/users", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "users"] }
+          }
+        },
+        {
+          "name": "Get System Settings",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/settings", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "settings"] }
+          }
+        },
+        {
+          "name": "Update System Setting",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"key\": \"GRACE_PERIOD_MINUTES\",\n  \"value\": \"20\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/settings", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "settings"] }
+          }
+        },
+        {
+          "name": "Get System Audit Logs",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/audit-logs", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "audit-logs"] }
+          }
+        }
+      ]
+    }
+  ]
+}

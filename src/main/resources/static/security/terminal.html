@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Security Gate Terminal — CampusPass</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="/css/main.css">
+  <!-- HTML5 QR Code Scanner Library -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body class="bg-light">
+
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center" href="/security/terminal.html">
+        <i class="bi bi-shield-check me-2 fs-4 text-warning"></i>
+        <span>CampusPass</span>
+        <span class="brand-badge bg-warning text-dark">Gate Terminal</span>
+      </a>
+
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto align-items-lg-center">
+          <li class="nav-item me-3">
+            <span class="navbar-text text-light" id="navUserDisplay">Security Guard</span>
+          </li>
+          <li class="nav-item">
+            <button class="btn btn-outline-light btn-sm" onclick="Auth.logout()">
+              <i class="bi bi-box-arrow-right me-1"></i> Logout
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container py-4">
+
+    <div class="row g-4">
+      
+      <!-- Left Column: Camera Scanner & Manual Input -->
+      <div class="col-lg-5">
+        <div class="card p-4 border-0 shadow-sm mb-4">
+          <h5 class="fw-bold mb-3"><i class="bi bi-qr-code-scan me-2 text-primary"></i>QR Pass Scanner</h5>
+          
+          <!-- Camera Feed Container -->
+          <div id="reader" style="width: 100%; border-radius: 12px; overflow: hidden;" class="mb-3 bg-dark"></div>
+
+          <div class="d-flex gap-2 mb-3">
+            <button id="startScanBtn" class="btn btn-primary btn-sm flex-fill" onclick="startScanner()">
+              <i class="bi bi-camera-fill me-1"></i> Start Camera Scan
+            </button>
+            <button id="stopScanBtn" class="btn btn-outline-secondary btn-sm flex-fill" onclick="stopScanner()" disabled>
+              <i class="bi bi-camera-video-off me-1"></i> Stop Camera
+            </button>
+          </div>
+
+          <hr>
+
+          <!-- Manual Token Input Fallback -->
+          <h6 class="fw-semibold text-secondary small text-uppercase">Manual Token Lookup Fallback</h6>
+          <form id="manualVerifyForm">
+            <div class="input-group mb-2">
+              <input type="text" id="manualTokenInput" class="form-control" placeholder="Enter QR Token or Pass URI..." required>
+              <button class="btn btn-dark" type="submit"><i class="bi bi-search me-1"></i> Verify</button>
+            </div>
+            <small class="text-muted">Use this if the camera is unavailable or screen is cracked.</small>
+          </form>
+        </div>
+      </div>
+
+      <!-- Right Column: Verification Result & Gate Actions -->
+      <div class="col-lg-7">
+        
+        <div class="card p-4 border-0 shadow-sm mb-4">
+          <h5 class="fw-bold mb-3"><i class="bi bi-shield-shaded me-2 text-primary"></i>Verification Result</h5>
+
+          <div id="verificationResultBox">
+            <div class="text-center py-5 text-muted">
+              <i class="bi bi-qr-code fs-1 opacity-25"></i>
+              <p class="mt-2 mb-0">Ready for scan. Point the camera at student's E-Pass QR code.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Gate Registry Tabs -->
+        <div class="card p-4 border-0 shadow-sm">
+          <ul class="nav nav-tabs mb-3" role="tablist">
+            <li class="nav-item">
+              <button class="nav-link active fw-semibold" data-bs-toggle="tab" data-bs-target="#tabOutside" type="button" onclick="loadOutside()">
+                <i class="bi bi-box-arrow-right me-1"></i> Currently Outside (<span id="countOutside">0</span>)
+              </button>
+            </li>
+            <li class="nav-item">
+              <button class="nav-link fw-semibold text-danger" data-bs-toggle="tab" data-bs-target="#tabOverdue" type="button" onclick="loadOverdue()">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i> Overdue at Gate (<span id="countOverdue">0</span>)
+              </button>
+            </li>
+          </ul>
+
+          <div class="tab-content">
+            <!-- Currently Outside -->
+            <div class="tab-pane fade show active" id="tabOutside">
+              <div class="table-responsive">
+                <table class="table table-hover align-middle table-sm">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Pass #</th>
+                      <th>Student</th>
+                      <th>Roll No</th>
+                      <th>Exit Time</th>
+                      <th>Expected Return</th>
+                    </tr>
+                  </thead>
+                  <tbody id="outsideTableBody">
+                    <tr><td colspan="5" class="text-center py-3 text-muted">Loading...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Overdue -->
+            <div class="tab-pane fade" id="tabOverdue">
+              <div class="table-responsive">
+                <table class="table table-hover align-middle table-sm">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Pass #</th>
+                      <th>Student</th>
+                      <th>Roll No</th>
+                      <th>Expected Return</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="overdueTableBody">
+                    <tr><td colspan="5" class="text-center py-3 text-muted">Loading...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script>
+    const user = Auth.checkAuth('SECURITY');
+
+    let html5QrCode = null;
+
+    function startScanner() {
+      html5QrCode = new Html5Qrcode("reader");
+      const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+      html5QrCode.start(
+        { facingMode: "environment" },
+        config,
+        (decodedText) => {
+          verifyToken(decodedText);
+          stopScanner();
+        },
+        (errorMessage) => {
+          // Scanning in progress
+        }
+      ).then(() => {
+        document.getElementById('startScanBtn').disabled = true;
+        document.getElementById('stopScanBtn').disabled = false;
+      }).catch(err => {
+        alert("Camera error: " + err);
+      });
+    }
+
+    function stopScanner() {
+      if (html5QrCode) {
+        html5QrCode.stop().then(() => {
+          document.getElementById('startScanBtn').disabled = false;
+          document.getElementById('stopScanBtn').disabled = true;
+        }).catch(err => console.error(err));
+      }
+    }
+
+    document.getElementById('manualVerifyForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const token = document.getElementById('manualTokenInput').value.trim();
+      verifyToken(token);
+    });
+
+    async function verifyToken(token) {
+      const box = document.getElementById('verificationResultBox');
+      box.innerHTML = '<div class="text-center py-5"><span class="spinner-border text-primary"></span><div class="mt-2 text-muted">Verifying token through backend...</div></div>';
+
+      try {
+        const res = await API.post('/api/v1/security/verify', { qrToken: token });
+        const v = res.data;
+        renderVerificationResult(v, token);
+      } catch (err) {
+        box.innerHTML = `
+          <div class="verification-banner invalid text-center">
+            <i class="bi bi-x-circle-fill fs-1 text-danger"></i>
+            <h4 class="fw-bold mt-2">VERIFICATION FAILED</h4>
+            <p class="mb-0">${err.message}</p>
+          </div>
+        `;
+      }
+    }
+
+    function renderVerificationResult(v, rawToken) {
+      const box = document.getElementById('verificationResultBox');
+
+      if (!v.valid) {
+        box.innerHTML = `
+          <div class="verification-banner invalid text-center">
+            <i class="bi bi-shield-x fs-1 text-danger"></i>
+            <h4 class="fw-bold mt-2">INVALID / EXPIRED E-PASS</h4>
+            <p class="fs-5 mb-1">${v.message}</p>
+            <span class="badge bg-danger fs-6">${v.verificationCode}</span>
+          </div>
+        `;
+        return;
+      }
+
+      const isExit = v.verificationCode === 'VALID_FOR_EXIT';
+      const isReturn = v.verificationCode === 'VALID_FOR_RETURN';
+
+      box.innerHTML = `
+        <div class="verification-banner valid mb-3">
+          <div class="d-flex align-items-center mb-3">
+            <i class="bi bi-check-circle-fill fs-1 text-success me-3"></i>
+            <div>
+              <h4 class="fw-bold mb-0 text-success">${isExit ? 'VALID E-PASS (READY FOR EXIT)' : 'VALID E-PASS (READY FOR RETURN)'}</h4>
+              <p class="mb-0 small text-muted">${v.message}</p>
+            </div>
+          </div>
+
+          <div class="card p-3 border-0 bg-white shadow-sm mb-3">
+            <div class="row align-items-center">
+              <div class="col-sm-3 text-center mb-2 mb-sm-0">
+                <i class="bi bi-person-bounding-box display-4 text-secondary"></i>
+              </div>
+              <div class="col-sm-9">
+                <h5 class="fw-bold mb-1">${v.studentName}</h5>
+                <div class="text-muted small mb-1">Roll No: <strong>${v.rollNumber}</strong> | Dept: <strong>${v.departmentName}</strong></div>
+                <div class="small">Pass ID: <strong>${v.passNumber}</strong></div>
+                <div class="small text-danger fw-bold">Expected Return Time: ${new Date(v.expectedReturnTime).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Gate Remarks / Luggage Note (Optional):</label>
+            <input type="text" id="gateRemarksInput" class="form-control form-control-sm" placeholder="e.g. Carrying laptop, vehicle RJ-14-1234">
+          </div>
+
+          <div class="d-grid gap-2">
+            ${isExit ? `
+              <button class="btn btn-success btn-lg fw-bold py-3" onclick="recordGateMovement('record-exit', '${rawToken}')">
+                <i class="bi bi-box-arrow-right me-2"></i> RECORD STUDENT EXIT
+              </button>
+            ` : ''}
+
+            ${isReturn ? `
+              <button class="btn btn-primary btn-lg fw-bold py-3" onclick="recordGateMovement('record-return', '${rawToken}')">
+                <i class="bi bi-box-arrow-in-left me-2"></i> RECORD STUDENT RETURN
+              </button>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    async function recordGateMovement(endpoint, token) {
+      const remarks = document.getElementById('gateRemarksInput') ? document.getElementById('gateRemarksInput').value.trim() : '';
+
+      try {
+        await API.post(`/api/v1/security/${endpoint}`, {
+          qrToken: token,
+          remarks: remarks
+        });
+        alert(endpoint === 'record-exit' ? 'Student EXIT successfully recorded!' : 'Student RETURN successfully recorded!');
+        document.getElementById('verificationResultBox').innerHTML = `
+          <div class="alert alert-success text-center py-4">
+            <i class="bi bi-check-all fs-1"></i>
+            <h5 class="fw-bold mt-2">Movement Recorded Successfully</h5>
+            <p class="mb-0 text-muted">Ready for the next scan.</p>
+          </div>
+        `;
+        loadOutside();
+        loadOverdue();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function loadOutside() {
+      const tbody = document.getElementById('outsideTableBody');
+      try {
+        const res = await API.get('/api/v1/security/currently-outside');
+        const list = res.data;
+        document.getElementById('countOutside').textContent = list.length;
+
+        if (list.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" class="text-center py-3 text-muted">No students currently outside.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = list.map(m => `
+          <tr>
+            <td class="fw-bold">${m.passNumber}</td>
+            <td>${m.studentName}</td>
+            <td>${m.rollNumber}</td>
+            <td>${new Date(m.exitTime).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</td>
+            <td>${new Date(m.expectedReturnTime).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</td>
+          </tr>
+        `).join('');
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function loadOverdue() {
+      const tbody = document.getElementById('overdueTableBody');
+      try {
+        const res = await API.get('/api/v1/security/overdue-students');
+        const list = res.data;
+        document.getElementById('countOverdue').textContent = list.length;
+
+        if (list.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" class="text-center py-3 text-muted">No students currently overdue.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = list.map(m => `
+          <tr class="table-danger">
+            <td class="fw-bold">${m.passNumber}</td>
+            <td>${m.studentName}</td>
+            <td>${m.rollNumber}</td>
+            <td class="fw-bold text-danger">${new Date(m.expectedReturnTime).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</td>
+            <td><span class="badge bg-danger">${m.movementStatus}</span></td>
+          </tr>
+        `).join('');
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    loadOutside();
+    loadOverdue();
+  </script>
+</body>
+</html>
